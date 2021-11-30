@@ -40,5 +40,32 @@ namespace TestNinja.UnitTests
 
             Assert.That(result, Is.EqualTo(expectedResult));
         }
+
+        [Test]
+        public void GetOddNumbers_LimitIsGreaterThanZero_ReturnOddNumbersUpToLimit()
+        {
+            var result = _math.GetOddNumbers(5);
+
+            // Test if collection is not empty
+            Assert.That(result, Is.Not.Empty);
+
+            // Test collection element count
+            Assert.That(result.Count, Is.EqualTo(3));
+
+            // Test if collection containt specific element
+            Assert.That(result, Does.Contain(1));
+            Assert.That(result, Does.Contain(3));
+            Assert.That(result, Does.Contain(5));
+
+            // Test if contains element in cleaner way (not checking order)
+            Assert.That(result, Is.EquivalentTo(new[] { 1, 3, 5 }));
+
+            // Test if collection elements is ordered
+            Assert.That(result, Is.Ordered);
+
+            // Test if collection elements is unique
+            Assert.That(result, Is.Unique);
+        }
+
     }
 }
