@@ -22,12 +22,12 @@ namespace TestNinja.UnitTests
             var result = formatter.FormatAsBold(content);
 
             // Specific assertion
-            Assert.That(result, Is.EqualTo($"<strong>{content}</strong>"));
+            Assert.That(result, Is.EqualTo($"<strong>{content}</strong>").IgnoreCase);
 
             // More general assertion
-            Assert.That(result, Does.StartWith("<strong>"));
-            Assert.That(result, Does.Contain(content));
-            Assert.That(result, Does.EndWith("</strong>"));
+            Assert.That(result, Does.StartWith("<strong>").IgnoreCase);
+            Assert.That(result, Does.Contain(content).IgnoreCase);
+            Assert.That(result, Does.EndWith("</strong>").IgnoreCase);
         }
     }
 }
