@@ -1,14 +1,14 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
+﻿using NUnit.Framework;
 using System;
 using TestNinja.Fundamentals;
 
 namespace TestNinja.UnitTests
 {
-    [TestClass]
+    [TestFixture]
     public class ReservationTests
     {
-        [TestMethod]
-        public void CanBeCancelledBy_UserIsAdmin_ReturnsTrue()
+        [Test]
+        public void CanBeCancelledBy_AdminCancelling_ReturnsTrue()
         {
             // Arrange
             var reservation = new Reservation();
@@ -17,27 +17,14 @@ namespace TestNinja.UnitTests
             var result = reservation.CanBeCancelledBy(new User() { IsAdmin = true });
 
             // Assert
-            Assert.IsTrue(result);
+            Assert.That(result, Is.True);
         }
 
-        [TestMethod]
-        public void CanBeCancelledBy_UserIsNotAdmin_ReturnsFalse()
-        {
-            // Arrange 
-            var reservation = new Reservation();
-
-            // Act
-            var result = reservation.CanBeCancelledBy(new User());
-
-            // Assert
-            Assert.IsFalse(result);
-        }
-
-        [TestMethod]
-        public void CanBeCancelled_UserMadeReservation_ReturnsTrue()
+        [Test]
+        public void CanBeCancelledBy_SameUserCancellingTheReservation_ReturnsTrue()
         {
             // Arrange
-            var user = new User();
+            var user = new User(); 
             var reservation = new Reservation() { MadeBy = user};
 
             // Act
@@ -47,12 +34,11 @@ namespace TestNinja.UnitTests
             Assert.IsTrue(result);
         }
 
-        [TestMethod]
-        public void CanBeCancelled_OtherUserMadeReservation_ReturnsFalse()
+        [Test]
+        public void CanBeCancelledBy_AnotherUserCancellingTheReservation_ReturnsFalse()
         {
             // Arrange
-            var user = new User();
-            var reservation = new Reservation() { MadeBy = user};
+            var reservation = new Reservation() { MadeBy = new User()};
 
             // Act
             var result = reservation.CanBeCancelledBy(new User());
@@ -60,6 +46,5 @@ namespace TestNinja.UnitTests
             // Assert
             Assert.IsFalse(result);
         }
-
     }
 }
