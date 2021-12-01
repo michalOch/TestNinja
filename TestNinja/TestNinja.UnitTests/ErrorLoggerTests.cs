@@ -41,5 +41,21 @@ namespace TestNinja.UnitTests
             Assert.That(() => _logger.Log(error), Throws.ArgumentNullException);
             //Assert.That(() => _logger.Log(error), Throws.TypeOf<DivideByZeroException>());
         }
+
+        [Test]
+        public void Log_ValidError_RaisedErrorLoggedEvent()
+        {
+            // Arrange
+            var errorMessage = "a";
+            var id = Guid.Empty;
+            // Subscribe to tested event before acting
+            _logger.ErrorLogged += (sender, args) =>{ id = args;};
+
+            // Act
+            _logger.Log(errorMessage);
+
+            // Assert
+            Assert.That(id, Is.Not.EqualTo(Guid.Empty));
+        }
     }
 }
