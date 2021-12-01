@@ -11,18 +11,35 @@ namespace TestNinja.UnitTests
     [TestFixture]
     public class ErrorLoggerTests
     {
+        private ErrorLogger _logger;
+
+        [SetUp]
+        public void SetUp()
+        {
+            _logger = new ErrorLogger();
+        }
+
         [Test]
         public void Log_WhenCalled_SetLastErrorProperty()
         {
             // Arrange
-            var logger = new ErrorLogger();
             var error = "error message";
 
             // Act
-            logger.Log(error);
+            _logger.Log(error);
 
             // Assert
-            Assert.That(logger.LastError, Is.EqualTo(error));
+            Assert.That(_logger.LastError, Is.EqualTo(error));
+        }
+
+        [Test]
+        [TestCase(null)]
+        [TestCase("")]
+        [TestCase(" ")]
+        public void Log_InvalidError_ThrowArgumentNullException(string error)
+        {
+            Assert.That(() => _logger.Log(error), Throws.ArgumentNullException);
+            //Assert.That(() => _logger.Log(error), Throws.TypeOf<DivideByZeroException>());
         }
     }
 }
