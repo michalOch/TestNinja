@@ -37,5 +37,15 @@ namespace TestNinja.UnitTests.Mocking
             Assert.That(result, Is.EqualTo(expected));
             Assert.That(result, Does.Contain("error").IgnoreCase);
         }
+
+        [Test]
+        public void GetUnprocessedVideosAsCsv_WhenCalled_ReturnString()
+        {
+            // Arrange
+
+            // Act
+
+            // Assert
+        }
     }
 }
