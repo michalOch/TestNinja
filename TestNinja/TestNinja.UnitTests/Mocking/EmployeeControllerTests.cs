@@ -23,7 +23,7 @@ namespace TestNinja.UnitTests.Mocking
         }
 
         [Test]
-        public void DeleteEmployee_WhenCalled_RedirectToActionEmployees()
+        public void DeleteEmployee_EmployeeInDatabase_RedirectToActionEmployees()
         {
             // Act
             var result = _controller.DeleteEmployee(1);
@@ -32,9 +32,8 @@ namespace TestNinja.UnitTests.Mocking
             Assert.That(result, Is.TypeOf<RedirectResult>());
         }
 
-        // write test to assert tht method DeleteEmployee calls the right method in EmployeeStorage object (interaction-testing)
         [Test]
-        public void DeleteEmployee_WhenCalled_CallRemoveEmployeeFromDataBase()
+        public void DeleteEmployee_WhenCalled_DeleteEmployeeFromDataBase()
         {
             // Arrange
             var id = 1;
