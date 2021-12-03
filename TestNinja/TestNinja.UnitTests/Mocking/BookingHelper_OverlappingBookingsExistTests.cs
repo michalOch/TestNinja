@@ -22,10 +22,6 @@ namespace TestNinja.UnitTests.Mocking
         // The existing booking is cancelled, return empty string, we don't have overlap
         // The new booking is cancelled, return empty string becouse we don't have any overlap
 
-
-        // Scenarios
-        // New booking starts and finish after any other booking - no overraping -> return empty string
-
         private Booking _existingBooking;
         private Mock<IBookingRepository> _repository;
 
@@ -61,6 +57,36 @@ namespace TestNinja.UnitTests.Mocking
 
             // Assert
             Assert.That(result, Is.Empty);
+        }
+
+        [Test]
+        public void BookingStartsBeforeAndFinishesInTheMiddleOfAnExistingBooking_ReturnExistingBookingsReference()
+        {
+            // Act
+            var result = BookingHelper.OverlappingBookingsExist(new Booking()
+            {
+                Id = 1,
+                ArrivalDate = Before(_existingBooking.ArrivalDate),
+                DepartureDate = After(_existingBooking.ArrivalDate)
+            }, _repository.Object);
+
+            // Assert
+            Assert.That(result, Is.EqualTo(_existingBooking.Reference));
+        }
+
+        [Test]
+        public void BookingStartsBeforeAndFinishesAfterAnExistingBooking_ReturnExistingBookingsReference()
+        {
+            // Act
+            var result = BookingHelper.OverlappingBookingsExist(new Booking()
+            {
+                Id = 1,
+                ArrivalDate = Before(_existingBooking.ArrivalDate),
+                DepartureDate = After(_existingBooking.DepartureDate)
+            }, _repository.Object);
+
+            // Assert
+            Assert.That(result, Is.EqualTo(_existingBooking.Reference));
         }
 
         private DateTime ArriveOn(int year, int month, int day)
