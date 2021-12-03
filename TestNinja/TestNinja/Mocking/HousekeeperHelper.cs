@@ -6,20 +6,27 @@ using System.Text;
 
 namespace TestNinja.Mocking
 {
-    public static class HousekeeperHelper
+    public class HousekeeperHelper
     {
-        private static readonly UnitOfWork UnitOfWork = new UnitOfWork();
+        private readonly IUnitOfWork _unitOfWork;
+        private readonly IStatementGenerator _statementGenerator;
 
-        public static bool SendStatementEmails(DateTime statementDate)
+        public HousekeeperHelper(IUnitOfWork unitOfWork, IStatementGenerator statementGenerator)
         {
-            var housekeepers = UnitOfWork.Query<Housekeeper>();
+            _unitOfWork = unitOfWork;
+            _statementGenerator = statementGenerator;
+        }
+
+        public bool SendStatementEmails(DateTime statementDate)
+        {
+            var housekeepers = _unitOfWork.Query<Housekeeper>();
 
             foreach (var housekeeper in housekeepers)
             {
                 if (housekeeper.Email == null)
                     continue;
-
-                var statementFilename = SaveStatement(housekeeper.Oid, housekeeper.FullName, statementDate);
+               
+                var statementFilename = _statementGenerator.SaveStatement(housekeeper.Oid, housekeeper.FullName, statementDate);
 
                 if (string.IsNullOrWhiteSpace(statementFilename))
                     continue;
@@ -40,24 +47,6 @@ namespace TestNinja.Mocking
             }
 
             return true;
-        }
-
-        private static string SaveStatement(int housekeeperOid, string housekeeperName, DateTime statementDate)
-        {
-            var report = new HousekeeperStatementReport(housekeeperOid, statementDate);
-
-            if (!report.HasData)
-                return string.Empty;
-
-            report.CreateDocument();
-
-            var filename = Path.Combine(
-                Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments),
-                string.Format("Sandpiper Statement {0:yyyy-MM} {1}.pdf", statementDate, housekeeperName));
-
-            report.ExportToPdf(filename);
-
-            return filename;
         }
 
         private static void EmailFile(string emailAddress, string emailBody, string filename, string subject)
