@@ -10,11 +10,19 @@ namespace TestNinja.Mocking
     {
         private readonly IUnitOfWork _unitOfWork;
         private readonly IStatementGenerator _statementGenerator;
+        private readonly IEmailSender _emailSender;
+        private readonly IXtraMessageBox _xtraMessageBox;
 
-        public HousekeeperHelper(IUnitOfWork unitOfWork, IStatementGenerator statementGenerator)
+        public HousekeeperHelper(
+            IUnitOfWork unitOfWork, 
+            IStatementGenerator statementGenerator, 
+            IEmailSender emailSender,
+            IXtraMessageBox xtraMessageBox)
         {
             _unitOfWork = unitOfWork;
             _statementGenerator = statementGenerator;
+            _emailSender = emailSender;
+            _xtraMessageBox = xtraMessageBox;
         }
 
         public bool SendStatementEmails(DateTime statementDate)
@@ -36,60 +44,22 @@ namespace TestNinja.Mocking
 
                 try
                 {
-                    EmailFile(emailAddress, emailBody, statementFilename,
+                    _emailSender.EmailFile(emailAddress, emailBody, statementFilename,
                         string.Format("Sandpiper Statement {0:yyyy-MM} {1}", statementDate, housekeeper.FullName));
                 }
                 catch (Exception e)
                 {
-                    XtraMessageBox.Show(e.Message, string.Format("Email failure: {0}", emailAddress),
+                    _xtraMessageBox.Show(e.Message, string.Format("Email failure: {0}", emailAddress),
                         MessageBoxButtons.OK);
                 }
             }
-
             return true;
-        }
-
-        private static void EmailFile(string emailAddress, string emailBody, string filename, string subject)
-        {
-            var client = new SmtpClient(SystemSettingsHelper.EmailSmtpHost)
-            {
-                Port = SystemSettingsHelper.EmailPort,
-                Credentials =
-                    new NetworkCredential(
-                        SystemSettingsHelper.EmailUsername,
-                        SystemSettingsHelper.EmailPassword)
-            };
-
-            var from = new MailAddress(SystemSettingsHelper.EmailFromEmail, SystemSettingsHelper.EmailFromName,
-                Encoding.UTF8);
-            var to = new MailAddress(emailAddress);
-
-            var message = new MailMessage(from, to)
-            {
-                Subject = subject,
-                SubjectEncoding = Encoding.UTF8,
-                Body = emailBody,
-                BodyEncoding = Encoding.UTF8
-            };
-
-            message.Attachments.Add(new Attachment(filename));
-            client.Send(message);
-            message.Dispose();
-
-            File.Delete(filename);
-        }
+        }        
     }
 
     public enum MessageBoxButtons
     {
         OK
-    }
-
-    public class XtraMessageBox
-    {
-        public static void Show(string s, string housekeeperStatements, MessageBoxButtons ok)
-        {
-        }
     }
 
     public class MainForm
