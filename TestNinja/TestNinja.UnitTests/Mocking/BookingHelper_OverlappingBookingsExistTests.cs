@@ -12,16 +12,6 @@ namespace TestNinja.UnitTests.Mocking
     [TestFixture]
     public class BookingHelper_OverlappingBookingsExistTests
     {
-        // Scenario
-        // New bookin finish in the middle of existing booking - overlap -> return reference to the existing booking
-        // New booking finishing after the exisiting booking - overlapt -> return reference to the existing booking
-        // New booking can start in the middle od exisiting booking and finish after - overlap -> return reference to the existing booking
-        // New booking start and finishing after the existing booking - no overlap -> return empty string
-
-        // Assuming we have overlap we have two more scenarios
-        // The existing booking is cancelled, return empty string, we don't have overlap
-        // The new booking is cancelled, return empty string becouse we don't have any overlap
-
         private Booking _existingBooking;
         private Mock<IBookingRepository> _repository;
 
@@ -96,12 +86,58 @@ namespace TestNinja.UnitTests.Mocking
             var result = BookingHelper.OverlappingBookingsExist(new Booking()
             {
                 Id = 1,
-                ArrivalDate = After(_existingBooking.ArrivalDate,2),
-                DepartureDate = Before(_existingBooking.DepartureDate,2)
+                ArrivalDate = After(_existingBooking.ArrivalDate),
+                DepartureDate = Before(_existingBooking.DepartureDate)
             }, _repository.Object);
 
             // Assert
             Assert.That(result, Is.EqualTo(_existingBooking.Reference));
+        }
+
+        [Test]
+        public void BookingStartsInTheMiddleOfAnExistingBookingButFinishesAfter_ReturnExistingBookingsReference()
+        {
+            // Act
+            var result = BookingHelper.OverlappingBookingsExist(new Booking()
+            {
+                Id = 1,
+                ArrivalDate = After(_existingBooking.ArrivalDate),
+                DepartureDate = After(_existingBooking.DepartureDate)
+            }, _repository.Object);
+
+            // Assert
+            Assert.That(result, Is.EqualTo(_existingBooking.Reference));
+        }
+
+        [Test]
+        public void BookingStartsAndFinishesAfterAnExistingBooking_ReturnEmptyString()
+        {
+            // Act
+            var result = BookingHelper.OverlappingBookingsExist(new Booking()
+            {
+                Id = 1,
+                ArrivalDate = After(_existingBooking.DepartureDate),
+                DepartureDate = After(_existingBooking.DepartureDate,days: 10)
+            }, _repository.Object);
+
+            // Assert
+            Assert.That(result, Is.Empty);
+        }
+
+        [Test]
+        public void BookingsOverlapButNewBookingIsCanceled_ReturnEmptyString()
+        {
+            // Act
+            var result = BookingHelper.OverlappingBookingsExist(new Booking()
+            {
+                Id = 1,
+                ArrivalDate = After(_existingBooking.ArrivalDate),
+                DepartureDate = Before(_existingBooking.DepartureDate),
+                Status = "Cancelled"
+            }, _repository.Object);
+
+            // Assert
+            Assert.That(result, Is.Empty);
         }
 
         private DateTime ArriveOn(int year, int month, int day)
