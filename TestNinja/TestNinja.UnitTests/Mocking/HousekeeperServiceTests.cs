@@ -33,7 +33,7 @@ namespace TestNinja.UnitTests.Mocking
         private Mock<IXtraMessageBox> _messageBox;
         private HousekeeperService _service;
         private DateTime _statementDate = new DateTime(2017, 1, 1);
-        private readonly string _statementFileName = "filename";
+        private string _statementFileName;
 
         [SetUp]
         public void SetUp()
@@ -52,7 +52,12 @@ namespace TestNinja.UnitTests.Mocking
                 _housekeeper
             }.AsQueryable());
 
+            _statementFileName = "fileName";
             _statementGenerator = new Mock<IStatementGenerator>();
+            _statementGenerator
+                .Setup(sg => sg.SaveStatement(_housekeeper.Oid, _housekeeper.FullName, _statementDate))
+                .Returns(() => _statementFileName);
+
             _emailSender = new Mock<IEmailSender>();
             _messageBox = new Mock<IXtraMessageBox>();
 
@@ -68,8 +73,7 @@ namespace TestNinja.UnitTests.Mocking
         {
             _service.SendStatementEmails(_statementDate);
 
-            _statementGenerator.Verify(sg => 
-                sg.SaveStatement(_housekeeper.Oid, _housekeeper.FullName, _statementDate));
+            VerifyStatementGenerated();
         }
 
         [Test]
@@ -79,27 +83,16 @@ namespace TestNinja.UnitTests.Mocking
         public void SendStatementEmails_HouskeepersInvalidEmail_ShouldNotGenerateStatements(string email)
         {
             _housekeeper.Email = email;
-
             _service.SendStatementEmails(_statementDate);
 
-            _statementGenerator.Verify(sg =>
-                sg.SaveStatement(_housekeeper.Oid, _housekeeper.FullName, _statementDate), Times.Never);
+            VerifyStatementNotGenerated();
         }
 
         [Test]
         public void SendStatementEmails_WhenCalled_EmailTheStatement()
         {
-            _statementGenerator.Setup(sg => sg.SaveStatement(_housekeeper.Oid, _housekeeper.FullName, _statementDate))
-                .Returns(_statementFileName);
-
             _service.SendStatementEmails(_statementDate);
-
-            _emailSender.Verify(es =>
-                es.EmailFile(
-                    _housekeeper.Email, 
-                    _housekeeper.StatementEmailBody, 
-                    _statementFileName, 
-                    It.IsAny<string>()));
+            VerifyEmailSent();
         }
 
         [Test]
@@ -108,19 +101,43 @@ namespace TestNinja.UnitTests.Mocking
         [TestCase("")]
         public void SendStatementEmails_InvalidStatementFilename_ShouldNotEmailTheStatement(string statementFileName)
         {
-            _statementGenerator.Setup(sg => sg.SaveStatement(_housekeeper.Oid, _housekeeper.FullName, _statementDate))
-                .Returns(() => statementFileName);
-
+            _statementFileName = statementFileName;
             _service.SendStatementEmails(_statementDate);
+            VerifyEmailNotSent();
+        }
 
-            _emailSender.Verify(es =>
-                es.EmailFile(
+        private void VerifyEmailNotSent()
+        {
+            _emailSender.Verify(es => es.EmailFile(
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<string>(),
                     It.IsAny<string>()),
                     Times.Never);
         }
-
+        private void VerifyEmailSent()
+        {
+            _emailSender.Verify(es =>
+                es.EmailFile(
+                    _housekeeper.Email,
+                    _housekeeper.StatementEmailBody,
+                    _statementFileName,
+                    It.IsAny<string>()));
+        }
+        private void VerifyStatementGenerated()
+        {
+            _statementGenerator.Verify(sg => sg.SaveStatement(
+                _housekeeper.Oid,
+                _housekeeper.FullName,
+                _statementDate));
+        }
+        private void VerifyStatementNotGenerated()
+        {
+            _statementGenerator.Verify(sg => sg.SaveStatement(
+                    _housekeeper.Oid,
+                    _housekeeper.FullName,
+                    _statementDate),
+                    Times.Never);
+        }
     }
 }
