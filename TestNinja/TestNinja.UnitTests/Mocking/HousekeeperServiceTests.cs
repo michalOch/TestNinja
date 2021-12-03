@@ -106,10 +106,10 @@ namespace TestNinja.UnitTests.Mocking
         [TestCase(null)]
         [TestCase(" ")]
         [TestCase("")]
-        public void SendStatementEmails_StatementFilenameIsNull_ShouldNotEmailTheStatement(string fileName)
+        public void SendStatementEmails_InvalidStatementFilename_ShouldNotEmailTheStatement(string statementFileName)
         {
             _statementGenerator.Setup(sg => sg.SaveStatement(_housekeeper.Oid, _housekeeper.FullName, _statementDate))
-                .Returns(() => fileName);
+                .Returns(() => statementFileName);
 
             _service.SendStatementEmails(_statementDate);
 
