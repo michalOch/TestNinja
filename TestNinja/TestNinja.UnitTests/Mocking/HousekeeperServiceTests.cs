@@ -25,40 +25,50 @@ namespace TestNinja.UnitTests.Mocking
         // then use DI to inject those dependencie into HousekeeperHelper class
 
         // need to create some of interaction test to check if house keeper helper object talks with other objects like statementGenerator, emailSender properly
+        
+        private Mock<IUnitOfWork> _unitOfWork;
+        private Housekeeper _housekeeper;
+        private Mock<IStatementGenerator> _statementGenerator;
+        private Mock<IEmailSender> _emailSender;
+        private Mock<IXtraMessageBox> _messageBox;
+        private HousekeeperService _service;
+        private DateTime _statementDate = new DateTime(2017, 1, 1); 
+
         [SetUp]
         public void SetUp()
-        {
+        {        
+            _housekeeper = new Housekeeper
+            {
+                Email = "a",
+                FullName = "b",
+                StatementEmailBody = "c",
+                Oid = 1
+            };
 
+            _unitOfWork = new Mock<IUnitOfWork>();
+            _unitOfWork.Setup(uow => uow.Query<Housekeeper>()).Returns(new List<Housekeeper>
+            {
+                _housekeeper
+            }.AsQueryable());
+
+            _statementGenerator = new Mock<IStatementGenerator>();
+            _emailSender = new Mock<IEmailSender>();
+            _messageBox = new Mock<IXtraMessageBox>();
+
+            _service = new HousekeeperService(
+                _unitOfWork.Object,
+                _statementGenerator.Object,
+                _emailSender.Object,
+                _messageBox.Object);
         }
 
         [Test]
         public void SendStatementEmails_WhenCalled_GenerateStatements()
         {
-            var unitOfWork = new Mock<IUnitOfWork>();
-            unitOfWork.Setup(uow => uow.Query<Housekeeper>()).Returns(new List<Housekeeper>
-            {
-                new Housekeeper
-                {
-                    Email = "a",
-                    FullName = "b",
-                    Oid = 1,
-                    StatementEmailBody = "c"
-                }
-            }.AsQueryable());
+            _service.SendStatementEmails(_statementDate);
 
-            var statementGenerator = new Mock<IStatementGenerator>();
-            var emailSender = new Mock<IEmailSender>();
-            var messageBox = new Mock<IXtraMessageBox>();
-
-            var service = new HousekeeperService(
-                unitOfWork.Object, 
-                statementGenerator.Object, 
-                emailSender.Object, 
-                messageBox.Object);
-
-            service.SendStatementEmails(new DateTime(2017, 1, 1));
-
-            statementGenerator.Verify(sg => sg.SaveStatement(1, "b", new DateTime(2017, 1, 1)));
+            _statementGenerator.Verify(sg => 
+                sg.SaveStatement(_housekeeper.Oid, _housekeeper.FullName, _statementDate));
         }
     }
 }
