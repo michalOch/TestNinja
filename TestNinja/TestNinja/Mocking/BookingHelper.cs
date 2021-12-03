@@ -15,9 +15,7 @@ namespace TestNinja.Mocking
 
             var overlappingBooking =
                 bookings.FirstOrDefault(
-                    b =>
-                        booking.ArrivalDate < b.ArrivalDate
-                        && b.ArrivalDate < booking.DepartureDate);
+                    b => booking.ArrivalDate < b.DepartureDate && b.ArrivalDate < booking.DepartureDate);
 
             return overlappingBooking == null ? string.Empty : overlappingBooking.Reference;
         }
