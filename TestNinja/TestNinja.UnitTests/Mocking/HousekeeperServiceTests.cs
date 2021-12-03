@@ -72,7 +72,6 @@ namespace TestNinja.UnitTests.Mocking
         public void SendStatementEmails_WhenCalled_ShouldGenerateStatements()
         {
             _service.SendStatementEmails(_statementDate);
-
             VerifyStatementGenerated();
         }
 
@@ -84,7 +83,6 @@ namespace TestNinja.UnitTests.Mocking
         {
             _housekeeper.Email = email;
             _service.SendStatementEmails(_statementDate);
-
             VerifyStatementNotGenerated();
         }
 
@@ -104,6 +102,20 @@ namespace TestNinja.UnitTests.Mocking
             _statementFileName = statementFileName;
             _service.SendStatementEmails(_statementDate);
             VerifyEmailNotSent();
+        }
+
+        [Test]
+        public void SendStatementEmails_EmailSendingFails_DisplayAMessageBox()
+        {
+            _emailSender.Setup(es => es.EmailFile(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                It.IsAny<string>())).Throws<Exception>();
+
+            _service.SendStatementEmails(_statementDate);
+
+            VerifyMessageBoxDisplayed();
         }
 
         private void VerifyEmailNotSent()
@@ -138,6 +150,13 @@ namespace TestNinja.UnitTests.Mocking
                     _housekeeper.FullName,
                     _statementDate),
                     Times.Never);
+        }
+        private void VerifyMessageBoxDisplayed()
+        {
+            _messageBox.Verify(mb => mb.Show(
+                It.IsAny<string>(),
+                It.IsAny<string>(),
+                MessageBoxButtons.OK));
         }
     }
 }
